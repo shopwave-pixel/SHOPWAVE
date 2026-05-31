@@ -284,7 +284,9 @@
 
 <script>
 // ==================== GOOGLE SHEETS CONFIGURATION ====================
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYfZZJ08Oax5mxPm0sMWZZJDRuAma-s3UpNV8SdeuCmDPRU4fISNPg6Qcm9HINWUZc1A/exec';
+// 🔴 এখানে আপনার Apps Script URL বসান 🔴
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwec3PEjyi4megaFT90HoYpyn2zdhhGFXEPIITDI0p4V68YDjfYbaTGDtM9J2r9O2YthQ/exec';
+
 // ==================== ADMIN PASSWORD ====================
 const ADMIN_PASSWORD = 'admin2192';
 
@@ -337,42 +339,18 @@ function saveCart() { localStorage.setItem(getCartKey(), JSON.stringify(cart)); 
 function saveWishlist() { localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist)); }
 function updateCartCount() { document.getElementById('cartCount').textContent = cart.reduce((s,i)=>s+i.qty,0); }
 
-// ==================== LOGIN WITH ADMIN PASSWORD CHECK ====================
+// ==================== LOGIN ====================
 function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    
     if(!email) return showToast('Please enter your email', 'error');
-    
-    // Check if this is the admin email
-    if(email === 'admin@shopwave.com') {
-        // Admin requires correct password
-        if(password !== ADMIN_PASSWORD) {
-            return showToast('Invalid admin password!', 'error');
-        }
-        // Admin login successful
-        let users = getUsers();
-        let admin = users.find(u => u.email === email);
-        if(!admin) {
-            admin = { id: 9999, name: 'Admin', email: email, password: ADMIN_PASSWORD, isAdmin: true };
-            users.push(admin);
-            saveUsers(users);
-        }
-        setCurrentUserId(admin.id);
-        toggleModal('authModal');
-        refreshUI();
-        cart = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
-        wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
-        renderCart();
-        showToast(`Welcome Admin!`, 'success');
-        return;
+    if(email === 'admin@shopwave.com' && password !== ADMIN_PASSWORD) {
+        return showToast('Invalid admin password!', 'error');
     }
-    
-    // Regular user - any password works
     let users = getUsers();
     let user = users.find(u => u.email === email);
     if(!user) {
-        user = { id: Date.now(), name: email.split('@')[0], email: email, password: password || 'any', isAdmin: false };
+        user = { id: Date.now(), name: email.split('@')[0], email: email, password: password || 'any', isAdmin: email === 'admin@shopwave.com' };
         users.push(user);
         saveUsers(users);
     }
@@ -382,25 +360,17 @@ function handleLogin() {
     cart = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
     wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
     renderCart();
-    showToast(`Welcome ${user.name}!`, 'success');
+    showToast(`Welcome ${user.name}!${user.isAdmin ? ' (Admin)' : ''}`, 'success');
 }
 
 function handleRegister() {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
-    const password = document.getElementById('regPassword').value;
-    
     if(!name || !email) return showToast('Please enter name and email', 'error');
-    
-    // Check if trying to register as admin
-    if(email === 'admin@shopwave.com') {
-        return showToast('Cannot register as admin. Use admin login with password.', 'error');
-    }
-    
+    if(email === 'admin@shopwave.com') return showToast('Cannot register as admin', 'error');
     let users = getUsers();
     if(users.find(u=>u.email===email)) return showToast('Email already registered', 'error');
-    
-    const newUser = { id: Date.now(), name, email, password: password || 'any', isAdmin: false };
+    const newUser = { id: Date.now(), name, email, password: 'any', isAdmin: false };
     users.push(newUser);
     saveUsers(users);
     setCurrentUserId(newUser.id);
@@ -469,7 +439,7 @@ function renderProducts(reset = false) {
         card.onclick = () => addToCart(p.id);
         const inWish = wishlist.includes(p.id);
         card.innerHTML = `${p.badge ? `<span class="badge ${p.badge}">${p.badge.toUpperCase()}</span>`:''}
-            <div class="product-img">${p.images?.[0] ? `<img src="${p.images[0]}" alt="" onerror="this.parentElement.innerHTML='${p.emoji||'📦'}'">` : (p.emoji||'📦')}</div>
+            <div class="product-img">${p.images?.[0] ? `<img src="${p.images[0]}" alt="">` : (p.emoji||'📦')}</div>
             <span class="wishlist-icon ${inWish?'active':''}" onclick="event.stopPropagation(); toggleWishlist(${p.id})">${inWish?'❤️':'♡'}</span>
             <div class="product-info"><div class="product-category">${p.category}</div><div class="product-name">${p.name}</div><div class="product-price">৳${p.price} ${p.oldPrice?`<span class="old-price">৳${p.oldPrice}</span>`:''}</div>
             <button class="btn-add" onclick="event.stopPropagation(); addToCart(${p.id})" ${p.stock===0?'disabled':''}>${p.stock===0?'Out of Stock':'Add to Cart'}</button></div>`;
@@ -574,16 +544,39 @@ function applyPromo() {
     updatePromoSummary();
 }
 
-// ==================== GOOGLE SHEET SAVE ====================
+// ==================== GOOGLE SHEET SAVE (অর্ডার আইডি সহ) ====================
 async function saveOrderToGoogleSheet(orderData) {
-    try { await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) }); console.log('Order saved to Google Sheet'); return true; } 
-    catch(error) { console.error('Google Sheet error:', error); return false; }
+    try {
+        // নিশ্চিত করা যে orderId আছে
+        if (!orderData.orderId && !orderData.id) {
+            orderData.orderId = 'ORD_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        }
+        
+        console.log('Sending to Google Sheet:', orderData);
+        
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
+        
+        console.log('Order sent to Google Sheet successfully');
+        return true;
+    } catch(error) {
+        console.error('Google Sheet error:', error);
+        return false;
+    }
 }
 
-// ==================== PLACE ORDER ====================
+// ==================== PLACE ORDER (অর্ডার আইডি তৈরি করা হবে) ====================
 async function placeOrderWithAllFeatures() {
     const del = window._tempDelivery;
     if(!del) return;
+    
+    // 🔴 এখানে ইউনিক অর্ডার আইডি তৈরি করা হচ্ছে 🔴
+    const uniqueOrderId = 'ORD_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+    
     const deliveryCharge = del.city==='Dhaka'?80:130;
     const subtotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
     let discount = 0;
@@ -591,16 +584,52 @@ async function placeOrderWithAllFeatures() {
     else if(currentPromoType==='fixed') discount = currentPromoDiscount;
     const total = subtotal + deliveryCharge - discount;
     const orderType = del.orderType || 'COD';
+    
     const prods = getProducts();
     for(let item of cart) { const prod = prods.find(p=>p.id===item.id); if(prod.stock < item.qty) return showToast(`Insufficient stock for ${prod.name}`, 'error'); }
     cart.forEach(item => { const prod = prods.find(p=>p.id===item.id); prod.stock -= item.qty; });
     saveProducts(prods);
-    const order = { id: Date.now(), userId: getCurrentUserId(), items: cart.map(i=>({...i})), subtotal, deliveryCharge, discount, total, date: new Date().toLocaleString(), status: 'Pending', delivery: {name:del.name, phone:del.phone, address:`${del.address}, ${del.city}`, additionalInfo:del.additionalInfo}, orderType: orderType, promo: currentPromoDiscount ? `${currentPromoDiscount}${currentPromoType==='percent'?'%':'tk'}` : '', createdAt: new Date().toISOString() };
-    const orders = getOrders(); orders.push(order); saveOrders(orders);
-    const sheetData = { orderId: String(order.id), customer: del.name, phone: del.phone, address: `${del.address}, ${del.city}`, items: order.items.map(i => `${i.name} x${i.qty}`).join(', '), total: total, orderType: orderType, status: 'Pending', date: order.date };
+    
+    const order = { 
+        id: uniqueOrderId,  // ইউনিক অর্ডার আইডি
+        orderId: uniqueOrderId,  // গুগল শীটের জন্য
+        userId: getCurrentUserId(), 
+        items: cart.map(i=>({...i})), 
+        subtotal, deliveryCharge, discount, total, 
+        date: new Date().toLocaleString(), 
+        status: 'Pending', 
+        delivery: {name:del.name, phone:del.phone, address:`${del.address}, ${del.city}`, additionalInfo:del.additionalInfo}, 
+        orderType: orderType, 
+        promo: currentPromoDiscount ? `${currentPromoDiscount}${currentPromoType==='percent'?'%':'tk'}` : '', 
+        createdAt: new Date().toISOString() 
+    };
+    
+    const orders = getOrders(); 
+    orders.push(order); 
+    saveOrders(orders);
+    
+    // গুগল শীটে ডাটা পাঠানো (অর্ডার আইডি সহ)
+    const sheetData = { 
+        orderId: uniqueOrderId,
+        customer: del.name, 
+        phone: del.phone, 
+        address: `${del.address}, ${del.city}`,
+        items: order.items.map(i => `${i.name} x${i.qty}`).join(', '), 
+        total: total, 
+        orderType: orderType, 
+        status: 'Pending', 
+        date: order.date,
+        email: getCurrentUser()?.email || ''
+    };
+    
     await saveOrderToGoogleSheet(sheetData);
-    showToast(`✅ Order placed! Total: ৳${total}. Email sent to admin!`, 'success');
-    cart = []; saveCart(); toggleModal('checkoutModal'); showSection('orders'); renderUserOrders();
+    showToast(`✅ Order #${uniqueOrderId} placed! Total: ৳${total}. Email sent to admin!`, 'success');
+    
+    cart = []; 
+    saveCart(); 
+    toggleModal('checkoutModal'); 
+    showSection('orders'); 
+    renderUserOrders();
 }
 
 // ==================== USER ORDERS ====================
@@ -614,13 +643,14 @@ function renderUserOrders() {
         const canCancel = (o.status === 'Pending' && minutesDiff < 15);
         const orderTypeClass = o.orderType === 'COD' ? 'type-cod' : (o.orderType === 'PAID' ? 'type-paid' : 'type-dc-paid');
         const showEditButton = isAdmin();
+        const displayOrderId = o.orderId || o.id;
         return `<div class="order-card">
-            <div class="order-header"><span class="order-id">Order #${o.id}</span><span class="order-type-badge ${orderTypeClass}">${o.orderType || 'COD'}</span><span class="badge-status ${o.status.toLowerCase()}">${o.status}</span></div>
+            <div class="order-header"><span class="order-id">Order #${displayOrderId}</span><span class="order-type-badge ${orderTypeClass}">${o.orderType || 'COD'}</span><span class="badge-status ${o.status.toLowerCase()}">${o.status}</span></div>
             <div>📅 ${o.date}</div><div>💰 Total: ৳${o.total}</div><div>📦 Items: ${o.items.map(i=>`${i.name} x${i.qty}`).join(', ')}</div><div>🚚 Delivery: ${o.delivery?.name}, ${o.delivery?.address}</div>
             ${canCancel ? `<div class="order-timer">⏰ You can cancel within 15 minutes</div>` : (o.status === 'Pending' ? `<div class="order-timer">⌛ Cancel window expired</div>` : '')}
             <div style="margin-top:12px;">
-                ${canCancel ? `<button class="cancel-order-btn" onclick="cancelUserOrder(${o.id})">❌ Cancel Order</button>` : ''}
-                ${showEditButton ? `<button class="edit-order-btn" onclick="openEditOrderModal(${o.id})">✏️ Edit Order (Admin)</button>` : ''}
+                ${canCancel ? `<button class="cancel-order-btn" onclick="cancelUserOrder('${o.id}')">❌ Cancel Order</button>` : ''}
+                ${showEditButton ? `<button class="edit-order-btn" onclick="openEditOrderModal('${o.id}')">✏️ Edit Order (Admin)</button>` : ''}
             </div>
         </div>`;
     }).join('') || '<p style="text-align:center; padding:40px;">No orders found</p>';
@@ -628,7 +658,7 @@ function renderUserOrders() {
 
 function cancelUserOrder(orderId) {
     const orders = getOrders();
-    const order = orders.find(o=>o.id===orderId);
+    const order = orders.find(o=>o.id==orderId);
     if(!order) return;
     const orderDate = new Date(order.createdAt || order.date);
     if((new Date() - orderDate) / 60000 > 15) return showToast('Cannot cancel after 15 minutes', 'error');
@@ -646,7 +676,7 @@ function cancelUserOrder(orderId) {
 // ==================== EDIT ORDER (ADMIN ONLY) ====================
 function openEditOrderModal(orderId) {
     if(!isAdmin()) { showToast('Only admin can edit orders!', 'error'); return; }
-    const order = getOrders().find(o=>o.id===orderId);
+    const order = getOrders().find(o=>o.id==orderId);
     if(!order) return;
     document.getElementById('editOrderId').value = orderId;
     document.getElementById('editOrderCustomer').value = order.delivery?.name || '';
@@ -659,9 +689,9 @@ function openEditOrderModal(orderId) {
 function closeEditOrderModal() { toggleModal('editOrderModal'); }
 function saveOrderEdit() {
     if(!isAdmin()) { showToast('Only admin can edit orders!', 'error'); return; }
-    const orderId = parseInt(document.getElementById('editOrderId').value);
+    const orderId = document.getElementById('editOrderId').value;
     const orders = getOrders();
-    const order = orders.find(o=>o.id===orderId);
+    const order = orders.find(o=>o.id==orderId);
     if(order) {
         order.delivery = { name: document.getElementById('editOrderCustomer').value, phone: document.getElementById('editOrderPhone').value, address: document.getElementById('editOrderAddress').value };
         order.orderType = document.getElementById('editOrderType').value;
@@ -693,13 +723,13 @@ function renderAdminOrders() {
     const search = document.getElementById('adminOrderSearch').value.toLowerCase();
     const statusFilter = document.getElementById('adminOrderStatusFilter').value;
     const filtered = orders.filter(o=>{ const user = users.find(u=>u.id==o.userId); return (!search || (user?.name||'').toLowerCase().includes(search)) && (statusFilter==='all' || o.status===statusFilter); });
-    document.getElementById('adminOrdersBody').innerHTML = filtered.map(o=>{ const user = users.find(u=>u.id==o.userId); return `<tr><td>${o.id}</td><td>${user?.name||'Unknown'}</td><td>৳${o.total}</td><td><span class="badge-status ${o.status.toLowerCase()}">${o.status}</span></td><td>${o.date}</td><td><select onchange="updateOrderStatus(${o.id}, this.value)"><option ${o.status==='Pending'?'selected':''}>Pending</option><option ${o.status==='Processing'?'selected':''}>Processing</option><option ${o.status==='Shipped'?'selected':''}>Shipped</option><option ${o.status==='Delivered'?'selected':''}>Delivered</option><option ${o.status==='Cancelled'?'selected':''}>Cancelled</option></select></td></tr>`; }).join('');
+    document.getElementById('adminOrdersBody').innerHTML = filtered.map(o=>{ const user = users.find(u=>u.id==o.userId); const displayId = o.orderId || o.id; return `<tr><td>${displayId}</td><td>${user?.name||'Unknown'}</td><td>৳${o.total}</td><td><span class="badge-status ${o.status.toLowerCase()}">${o.status}</span></td><td>${o.date}</td><td><select onchange="updateOrderStatus('${o.id}', this.value)"><option ${o.status==='Pending'?'selected':''}>Pending</option><option ${o.status==='Processing'?'selected':''}>Processing</option><option ${o.status==='Shipped'?'selected':''}>Shipped</option><option ${o.status==='Delivered'?'selected':''}>Delivered</option><option ${o.status==='Cancelled'?'selected':''}>Cancelled</option></select></td></tr>`; }).join('');
 }
 function updateOrderStatus(orderId, newStatus) {
     if(!isAdmin()) return;
     const orders = getOrders();
-    const order = orders.find(o=>o.id===orderId);
-    if(order) { order.status = newStatus; saveOrders(orders); showToast(`Order #${orderId} status: ${newStatus}`, 'success'); renderAdminOrders(); renderUserOrders(); }
+    const order = orders.find(o=>o.id==orderId);
+    if(order) { order.status = newStatus; saveOrders(orders); showToast(`Order status: ${newStatus}`, 'success'); renderAdminOrders(); renderUserOrders(); }
 }
 function editProduct(id) { const prod = getProducts().find(p=>p.id===id); if(prod){ document.getElementById('editProductId').value=id; document.getElementById('prodName').value=prod.name; document.getElementById('prodCategory').value=prod.category; document.getElementById('prodPrice').value=prod.price; document.getElementById('prodOldPrice').value=prod.oldPrice||''; document.getElementById('prodStock').value=prod.stock; document.getElementById('prodEmoji').value=prod.emoji||''; document.getElementById('prodBadge').value=prod.badge||''; document.getElementById('prodImages').value=prod.images?.join(',')||''; document.getElementById('prodDescription').value=prod.description||''; toggleModal('productModal'); } }
 function deleteProduct(id) { if(confirm('Delete this product?')) { saveProducts(getProducts().filter(p=>p.id!==id)); renderAdminProducts(); resetAndRender(); } }
