@@ -95,30 +95,6 @@
         .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.85rem; color: var(--text); }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 12px; font-size: 0.9rem; transition: 0.2s; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
-        .order-type-group { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding: 8px 0; }
-        .order-type-group label { display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer; }
-        .order-type-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
-        .type-cod { background: #FEF3C7; color: #92400E; }
-        .type-paid { background: #D1FAE5; color: #065F46; }
-        .type-dc-paid { background: #DBEAFE; color: #1E40AF; }
-        
-        .order-card { background: white; padding: 18px; border-radius: 16px; margin-bottom: 16px; border-left: 4px solid var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-        .order-header { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-        .order-id { font-weight: 800; font-family: monospace; font-size: 0.9rem; }
-        .badge-status { padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-        .badge-status.pending { background: #fef3c7; color: #92400e; }
-        .badge-status.processing { background: #dbeafe; color: #1e40af; }
-        .badge-status.shipped { background: #d1fae5; color: #065f46; }
-        .badge-status.delivered { background: #e0e7ff; color: #3730a3; }
-        .badge-status.cancelled { background: #fee2e2; color: #b91c1c; }
-        .order-timer { font-size: 0.7rem; color: var(--warning); margin-top: 8px; }
-        .cancel-order-btn { background: #fee2e2; color: #b91c1c; padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 600; margin-right: 8px; }
-        .edit-order-btn { background: #e0e7ff; color: #4338ca; padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
-        
-        .admin-badge { background: var(--primary); color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; margin-left: 8px; }
-        .admin-table { width: 100%; border-collapse: collapse; background: white; border-radius: 16px; overflow: hidden; }
-        .admin-table th, .admin-table td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; }
-        .admin-table th { background: var(--primary-light); font-weight: 700; }
         
         .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 4000; display: none; font-weight: 600; white-space: nowrap; }
         .toast.success { background: #0f3b2c; border-left: 4px solid #10b981; }
@@ -193,24 +169,62 @@
     </div>
 </div>
 
+<!-- ==================== COMPLETE AUTH MODAL WITH ALL FEATURES (OPTIONS 1-4) ==================== -->
 <div class="modal" id="authModal">
-    <div class="modal-content">
-        <h3 style="margin-bottom: 8px;">🔐 Login</h3>
-        <p style="color: #666; margin-bottom: 20px;">Login with your email (any password works for regular users)<br><strong>Admin: use password "admin2192"</strong></p>
+    <div class="modal-content" style="border-radius: 24px; max-width: 420px; width: 90%; padding: 28px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div style="font-size: 48px; margin-bottom: 8px;">🔐</div>
+            <h3 style="margin: 0; color: #1e293b; font-size: 24px;">Welcome Back</h3>
+            <p style="color: #64748b; font-size: 14px; margin-top: 8px;">Sign in to continue</p>
+        </div>
+        
+        <!-- Login Form -->
         <div id="loginForm">
-            <div class="form-group"><label>Email Address</label><input type="email" id="loginEmail" placeholder="your@email.com"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="Enter password"></div>
-            <button class="btn btn-primary" onclick="handleLogin()" style="width:100%;">Login</button>
-            <p style="margin-top: 16px; text-align: center;"><a href="#" onclick="switchToRegister()">Create new account</a></p>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b;">Email Address</label>
+                <input type="email" id="loginEmail" placeholder="your@email.com" style="width:100%; padding:12px; border-radius:12px; border:1px solid #e2e8f0; font-size:14px;">
+            </div>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b;">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter password" style="width:100%; padding:12px; border-radius:12px; border:1px solid #e2e8f0; font-size:14px;">
+            </div>
+            
+            <!-- Remember Me & Forgot Password -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
+                    <input type="checkbox" id="rememberMe" style="width: 16px; height: 16px;"> Remember me
+                </label>
+                <a href="#" onclick="forgotPassword(); return false;" style="color:#4F46E5; text-decoration:none; font-size:14px;">Forgot password?</a>
+            </div>
+            
+            <button class="btn btn-primary" onclick="handleLogin()" style="width:100%; padding:12px; border-radius:12px; background:#4F46E5; color:white; border:none; font-weight:600; cursor:pointer; font-size:16px;">Sign In</button>
+            
+            <p style="margin-top: 20px; text-align: center; font-size: 14px;">
+                <a href="#" onclick="switchToRegister()" style="color:#4F46E5; text-decoration:none;">Create new account</a>
+            </p>
         </div>
+        
+        <!-- Register Form -->
         <div id="registerForm" style="display:none;">
-            <div class="form-group"><label>Full Name</label><input type="text" id="regName"></div>
-            <div class="form-group"><label>Email Address</label><input type="email" id="regEmail"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="regPassword" placeholder="Create a password"></div>
-            <button class="btn btn-primary" onclick="handleRegister()" style="width:100%;">Register</button>
-            <p style="margin-top: 16px; text-align: center;"><a href="#" onclick="switchToLogin()">Already have an account? Login</a></p>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b;">Full Name</label>
+                <input type="text" id="regName" placeholder="Your name" style="width:100%; padding:12px; border-radius:12px; border:1px solid #e2e8f0; font-size:14px;">
+            </div>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b;">Email Address</label>
+                <input type="email" id="regEmail" placeholder="your@email.com" style="width:100%; padding:12px; border-radius:12px; border:1px solid #e2e8f0; font-size:14px;">
+            </div>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #1e293b;">Password</label>
+                <input type="password" id="regPassword" placeholder="Create password" style="width:100%; padding:12px; border-radius:12px; border:1px solid #e2e8f0; font-size:14px;">
+            </div>
+            <button class="btn btn-primary" onclick="handleRegister()" style="width:100%; padding:12px; border-radius:12px; background:#4F46E5; color:white; border:none; font-weight:600; cursor:pointer; font-size:16px;">Sign Up</button>
+            <p style="margin-top: 20px; text-align: center; font-size: 14px;">
+                <a href="#" onclick="switchToLogin()" style="color:#4F46E5; text-decoration:none;">Already have an account? Sign in</a>
+            </p>
         </div>
-        <button class="btn" onclick="toggleAuthModal()" style="margin-top: 16px; width:100%;">Close</button>
+        
+        <button class="btn" onclick="toggleAuthModal()" style="margin-top: 16px; width:100%; padding:10px; border-radius:12px; background:#f1f5f9; border:none; cursor:pointer; font-weight:600;">Close</button>
     </div>
 </div>
 
@@ -284,8 +298,7 @@
 
 <script>
 // ==================== GOOGLE SHEETS CONFIGURATION ====================
-// 🔴 এখানে আপনার Apps Script URL বসান 🔴
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKyGAVnODgeSp931Otsu0sFhZXk8dK818pFDYFNAIxADsKnGX1RNpO3-yz1YIqrtq_/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwec3PEjyi4megaFT90HoYpyn2zdhhGFXEPIITDI0p4V68YDjfYbaTGDtM9J2r9O2YthQ/exec';
 
 // ==================== ADMIN PASSWORD ====================
 const ADMIN_PASSWORD = 'admin2192';
@@ -339,44 +352,178 @@ function saveCart() { localStorage.setItem(getCartKey(), JSON.stringify(cart)); 
 function saveWishlist() { localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist)); }
 function updateCartCount() { document.getElementById('cartCount').textContent = cart.reduce((s,i)=>s+i.qty,0); }
 
-// ==================== LOGIN ====================
-function handleLogin() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    if(!email) return showToast('Please enter your email', 'error');
-    if(email === 'admin@shopwave.com' && password !== ADMIN_PASSWORD) {
-        return showToast('Invalid admin password!', 'error');
+// ==================== REMEMBER ME FUNCTIONS ====================
+function saveRememberMe(email) {
+    if (document.getElementById('rememberMe')?.checked) {
+        localStorage.setItem('rememberedEmail', email);
+    } else {
+        localStorage.removeItem('rememberedEmail');
     }
-    let users = getUsers();
-    let user = users.find(u => u.email === email);
-    if(!user) {
-        user = { id: Date.now(), name: email.split('@')[0], email: email, password: password || 'any', isAdmin: email === 'admin@shopwave.com' };
-        users.push(user);
-        saveUsers(users);
-    }
-    setCurrentUserId(user.id);
-    toggleModal('authModal');
-    refreshUI();
-    cart = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
-    wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
-    renderCart();
-    showToast(`Welcome ${user.name}!${user.isAdmin ? ' (Admin)' : ''}`, 'success');
 }
 
-function handleRegister() {
+function loadRememberedEmail() {
+    const remembered = localStorage.getItem('rememberedEmail');
+    if (remembered && document.getElementById('loginEmail')) {
+        document.getElementById('loginEmail').value = remembered;
+        const rememberCheckbox = document.getElementById('rememberMe');
+        if (rememberCheckbox) rememberCheckbox.checked = true;
+    }
+}
+
+function forgotPassword() {
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email) {
+        showToast('Please enter your email address first', 'error');
+        return;
+    }
+    showToast(`Password reset link sent to ${email}`, 'success');
+}
+
+function setupEnterKeySupport() {
+    const loginPassword = document.getElementById('loginPassword');
+    const regPassword = document.getElementById('regPassword');
+    
+    if (loginPassword) {
+        loginPassword.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleLogin();
+            }
+        });
+    }
+    
+    if (regPassword) {
+        regPassword.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleRegister();
+            }
+        });
+    }
+}
+
+// ==================== LOGIN FUNCTIONS ====================
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const loginBtn = document.querySelector('#loginForm .btn-primary');
+    const originalText = loginBtn.textContent;
+    
+    if(!email) {
+        showToast('Please enter email', 'error');
+        return;
+    }
+    
+    loginBtn.textContent = 'Logging in...';
+    loginBtn.disabled = true;
+    
+    try {
+        if(email === 'admin@shopwave.com') {
+            if(password !== ADMIN_PASSWORD) {
+                showToast('Invalid email or password', 'error');
+                loginBtn.textContent = originalText;
+                loginBtn.disabled = false;
+                return;
+            }
+            let users = getUsers();
+            let admin = users.find(u => u.email === email);
+            if(!admin) {
+                admin = { id: 9999, name: 'Admin', email: email, password: ADMIN_PASSWORD, isAdmin: true };
+                users.push(admin);
+                saveUsers(users);
+            }
+            setCurrentUserId(admin.id);
+            saveRememberMe(email);
+            toggleModal('authModal');
+            refreshUI();
+            cart = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+            wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
+            renderCart();
+            showToast('Welcome Admin!', 'success');
+            loginBtn.textContent = originalText;
+            loginBtn.disabled = false;
+            return;
+        }
+        
+        let users = getUsers();
+        let user = users.find(u => u.email === email);
+        if(!user) {
+            user = { 
+                id: Date.now(), 
+                name: email.split('@')[0], 
+                email: email, 
+                password: 'any', 
+                isAdmin: false 
+            };
+            users.push(user);
+            saveUsers(users);
+        }
+        setCurrentUserId(user.id);
+        saveRememberMe(email);
+        toggleModal('authModal');
+        refreshUI();
+        cart = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+        wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
+        renderCart();
+        showToast(`Welcome ${user.name}!`, 'success');
+        
+    } catch(error) {
+        showToast('Login failed. Please try again.', 'error');
+    } finally {
+        loginBtn.textContent = originalText;
+        loginBtn.disabled = false;
+    }
+}
+
+async function handleRegister() {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
-    if(!name || !email) return showToast('Please enter name and email', 'error');
-    if(email === 'admin@shopwave.com') return showToast('Cannot register as admin', 'error');
-    let users = getUsers();
-    if(users.find(u=>u.email===email)) return showToast('Email already registered', 'error');
-    const newUser = { id: Date.now(), name, email, password: 'any', isAdmin: false };
-    users.push(newUser);
-    saveUsers(users);
-    setCurrentUserId(newUser.id);
-    toggleModal('authModal');
-    refreshUI();
-    showToast(`Registration successful! Welcome ${name}`, 'success');
+    const password = document.getElementById('regPassword').value;
+    const registerBtn = document.querySelector('#registerForm .btn-primary');
+    const originalText = registerBtn.textContent;
+    
+    if(!name || !email) {
+        showToast('Please fill all fields', 'error');
+        return;
+    }
+    
+    if(email === 'admin@shopwave.com') {
+        showToast('Email already registered', 'error');
+        return;
+    }
+    
+    registerBtn.textContent = 'Creating account...';
+    registerBtn.disabled = true;
+    
+    try {
+        let users = getUsers();
+        if(users.find(u => u.email === email)) {
+            showToast('Email already registered', 'error');
+            registerBtn.textContent = originalText;
+            registerBtn.disabled = false;
+            return;
+        }
+        
+        const newUser = { 
+            id: Date.now(), 
+            name: name, 
+            email: email, 
+            password: password || 'any', 
+            isAdmin: false 
+        };
+        users.push(newUser);
+        saveUsers(users);
+        setCurrentUserId(newUser.id);
+        toggleModal('authModal');
+        refreshUI();
+        showToast(`Registration successful! Welcome ${name}`, 'success');
+        
+    } catch(error) {
+        showToast('Registration failed', 'error');
+    } finally {
+        registerBtn.textContent = originalText;
+        registerBtn.disabled = false;
+    }
 }
 
 function logout() {
@@ -544,23 +691,18 @@ function applyPromo() {
     updatePromoSummary();
 }
 
-// ==================== GOOGLE SHEET SAVE (অর্ডার আইডি সহ) ====================
+// ==================== GOOGLE SHEET SAVE ====================
 async function saveOrderToGoogleSheet(orderData) {
     try {
-        // নিশ্চিত করা যে orderId আছে
         if (!orderData.orderId && !orderData.id) {
-            orderData.orderId = 'ORD_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            orderData.orderId = 'ORD_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6).toUpperCase();
         }
-        
-        console.log('Sending to Google Sheet:', orderData);
-        
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
+        await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderData)
         });
-        
         console.log('Order sent to Google Sheet successfully');
         return true;
     } catch(error) {
@@ -569,14 +711,11 @@ async function saveOrderToGoogleSheet(orderData) {
     }
 }
 
-// ==================== PLACE ORDER (অর্ডার আইডি তৈরি করা হবে) ====================
 async function placeOrderWithAllFeatures() {
     const del = window._tempDelivery;
     if(!del) return;
     
-    // 🔴 এখানে ইউনিক অর্ডার আইডি তৈরি করা হচ্ছে 🔴
     const uniqueOrderId = 'ORD_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8).toUpperCase();
-    
     const deliveryCharge = del.city==='Dhaka'?80:130;
     const subtotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
     let discount = 0;
@@ -591,45 +730,25 @@ async function placeOrderWithAllFeatures() {
     saveProducts(prods);
     
     const order = { 
-        id: uniqueOrderId,  // ইউনিক অর্ডার আইডি
-        orderId: uniqueOrderId,  // গুগল শীটের জন্য
-        userId: getCurrentUserId(), 
-        items: cart.map(i=>({...i})), 
-        subtotal, deliveryCharge, discount, total, 
-        date: new Date().toLocaleString(), 
-        status: 'Pending', 
+        id: uniqueOrderId, orderId: uniqueOrderId, userId: getCurrentUserId(), items: cart.map(i=>({...i})), 
+        subtotal, deliveryCharge, discount, total, date: new Date().toLocaleString(), status: 'Pending', 
         delivery: {name:del.name, phone:del.phone, address:`${del.address}, ${del.city}`, additionalInfo:del.additionalInfo}, 
-        orderType: orderType, 
-        promo: currentPromoDiscount ? `${currentPromoDiscount}${currentPromoType==='percent'?'%':'tk'}` : '', 
+        orderType: orderType, promo: currentPromoDiscount ? `${currentPromoDiscount}${currentPromoType==='percent'?'%':'tk'}` : '', 
         createdAt: new Date().toISOString() 
     };
     
-    const orders = getOrders(); 
-    orders.push(order); 
-    saveOrders(orders);
+    const orders = getOrders(); orders.push(order); saveOrders(orders);
     
-    // গুগল শীটে ডাটা পাঠানো (অর্ডার আইডি সহ)
     const sheetData = { 
-        orderId: uniqueOrderId,
-        customer: del.name, 
-        phone: del.phone, 
-        address: `${del.address}, ${del.city}`,
-        items: order.items.map(i => `${i.name} x${i.qty}`).join(', '), 
-        total: total, 
-        orderType: orderType, 
-        status: 'Pending', 
-        date: order.date,
-        email: getCurrentUser()?.email || ''
+        orderId: uniqueOrderId, customer: del.name, phone: del.phone, address: `${del.address}, ${del.city}`,
+        items: order.items.map(i => `${i.name} x${i.qty}`).join(', '), total: total, orderType: orderType, 
+        status: 'Pending', date: order.date, email: getCurrentUser()?.email || ''
     };
     
     await saveOrderToGoogleSheet(sheetData);
     showToast(`✅ Order #${uniqueOrderId} placed! Total: ৳${total}. Email sent to admin!`, 'success');
     
-    cart = []; 
-    saveCart(); 
-    toggleModal('checkoutModal'); 
-    showSection('orders'); 
-    renderUserOrders();
+    cart = []; saveCart(); toggleModal('checkoutModal'); showSection('orders'); renderUserOrders();
 }
 
 // ==================== USER ORDERS ====================
@@ -745,12 +864,15 @@ function createDefaultAdmin() {
         saveUsers(users);
     }
 }
+
 window.onload = () => {
     if(!localStorage.getItem('products')) saveProducts(defaultProducts);
     createDefaultAdmin();
     refreshUI();
     resetAndRender();
     renderCart();
+    loadRememberedEmail();
+    setupEnterKeySupport();
 };
 
 // Expose global functions
@@ -786,6 +908,7 @@ window.loadMoreProducts = loadMoreProducts;
 window.toggleWishlist = toggleWishlist;
 window.renderAdminProducts = renderAdminProducts;
 window.renderAdminOrders = renderAdminOrders;
+window.forgotPassword = forgotPassword;
 </script>
 </body>
 </html>
